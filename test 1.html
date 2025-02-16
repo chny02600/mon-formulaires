@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulaire de Consultation</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; padding: 20px; }
+        form { max-width: 500px; margin: auto; padding: 20px; border: 1px solid #ccc; border-radius: 10px; }
+        label { font-weight: bold; display: block; margin-top: 10px; }
+        input, select, textarea { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 5px; }
+        textarea { height: 150px; resize: vertical; }
+        button { background-color: #28a745; color: white; padding: 10px; border: none; border-radius: 5px; cursor: pointer; margin-top: 15px; }
+        button:hover { background-color: #218838; }
+    </style>
+    <script src="https://js.stripe.com/v3/"></script>
+</head>
+<body>
+    <h2 style="text-align: center;">Réservez votre consultation</h2>
+    <form id="payment-form">
+        <label for="nom">Nom et Prénom</label>
+        <input type="text" id="nom" name="nom" required>
+
+        <label for="telephone">Numéro de Téléphone</label>
+        <input type="tel" id="telephone" name="telephone" required>
+        
+        <label for="email">Email</label>
+        <input type="email" id="email" name="email" required>
+        
+        <label for="date">Date de consultation</label>
+        <input type="date" id="date" name="date" required>
+        
+        <label for="probleme">Décrivez votre problème</label>
+        <textarea id="probleme" name="probleme" required></textarea>
+
+        
+        <select id="paiement" name="paiement" required>
+            <option value="35">Réponse rapide avec analyse de base - 35€</option>
+            
+        </select>
+        
+        <input type="checkbox" id="accept" name="accept" required>
+        <label for="accept">Je comprends que ce paiement est pour une analyse initiale de mon dossier et ne garantit pas une procédure complète</label>
+        
+        
+        <div id="card-element"><!-- Élément Stripe sera inséré ici --></div>
+        <div id="card-errors" role="alert"></div>
+        
+        <a href="https://buy.stripe.com/00g6pK4nJ7hl9EsfYY" target="_blank">
+            <button>Payer maintenant</button>
+        </a>
+        
+    </form>
+    
+    <script>
+        var stripe = Stripe('pk_live_51QrgqQAcipwVUEmRw6uAsQHoTeL5xj5MWhU0qq6S0TQuqVIwiemO9O7jFYtYAx7oVB0vgb8PUtqmrG1ERGObGuye00MQjBQ73X');
+        var elements = stripe.elements();
+        var card = elements.create('card');
+        card.mount('#card-element');
+
+        card.addEventListener('change', function(event) {
+            var displayError = document.getElementById('card-errors');
+            if (event.error) {
+                displayError.textContent = event.error.message;
+            } else {
+                displayError.textContent = '';
+            }
+        });
+
+        var form = document.getElementById('payment-form');
+        form.addEventListener('submit', function(event) {
+            event.preventDefault();
+            stripe.createToken(card).then(function(result) {
+                if (result.error) {
+                    var errorElement = document.getElementById('card-errors');
+                    errorElement.textContent = result.error.message;
+                } else {
+                    alert('Paiement réussi ! Token : ' + result.token.id);
+                    // Envoyer le token au serveur ici
+                }
+            });
+        });
+    </script>
+</body>
+</html>
